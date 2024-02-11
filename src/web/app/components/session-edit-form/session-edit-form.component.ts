@@ -147,8 +147,28 @@ export class SessionEditFormComponent {
       this.configureSubmissionOpeningTime(minTime);
       this.model.submissionStartTime = minTime;
     }
+	
+	// Checks for case where Session Visible Date later than Submission Opening Date
+	this.configureSessionVisibleDateTime(date, this.model.submissionStartTime)
 
     this.triggerModelChange(field, date);
+  }
+  
+  /**
+   * Triggers the change of the model when the submission opening date changes.
+   */
+   triggerSubmissionOpeningTimeModelChange(field: string, time: TimeFormat): void {
+	const date : DateFormat = this.model.submissionStartDate;
+	const sessionDate : DateFormat = this.model.customSessionVisibleDate
+    const sessionTime: TimeFormat = this.model.customSessionVisibleTime;
+
+    // Case where session visible and submission opening dates equal but submission opening time is earlier
+    if (DateTimeService.compareDateFormat(date, sessionDate) === 0
+    && DateTimeService.compareTimeFormat(time, sessionTime) === -1) {
+      this.configureSessionVisibleDateTime(date, time);
+    }	
+	
+    this.triggerModelChange(field, time);
   }
 
   /**
@@ -162,6 +182,23 @@ export class SessionEditFormComponent {
       time.hour += 1;
       time.minute = 0;
     }
+  }
+
+  /**
+   * Checks validity of Session Visible Date and Time, changes if invalid
+   */
+  configureSessionVisibleDateTime(date : DateFormat, time : TimeFormat) : void {
+    const sessionDate: DateFormat = this.model.customSessionVisibleDate; 
+	const sessionTime: TimeFormat = this.model.customSessionVisibleTime; 
+	
+	//Case where changed submission opening date is earlier than session visible date
+	if(DateTimeService.compareDateFormat(date, sessionDate) === -1){
+		this.model.customSessionVisibleDate = date;
+	} else if (DateTimeService.compareDateFormat(date, sessionDate) === 0 
+	&& DateTimeService.compareTimeFormat(time, sessionTime)){
+		//Case where submission opening is same date but earlier time than session visible
+		this.model.customSessionVisibleTime = time;
+	}
   }
 
   /**
